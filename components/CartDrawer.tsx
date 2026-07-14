@@ -56,11 +56,11 @@ export default function CartDrawer() {
   }, []);
 
   const handleQtyChange = (item: CartItem, newQty: number) => {
-    updateCartQuantity(item.id, newQty, item.color, item.size_letter, item.size_inch);
+    updateCartQuantity(item.id, newQty, item.color, item.size_letter, item.size_inch, item.is_combo, item.combo_selections);
   };
 
   const handleRemove = (item: CartItem) => {
-    removeFromCart(item.id, item.color, item.size_letter, item.size_inch);
+    removeFromCart(item.id, item.color, item.size_letter, item.size_inch, item.is_combo, item.combo_selections);
     toast.success("Item removed from bag");
   };
 
@@ -125,7 +125,9 @@ export default function CartDrawer() {
           ) : (
             <div className="d-flex flex-column gap-3">
               {cartItems.map((item, idx) => {
-                const attrs = [item.color, item.size_letter, item.size_inch ? `${item.size_inch}"` : ""].filter(Boolean).join(" / ");
+                const attrs = item.is_combo && item.combo_selections
+                  ? item.combo_selections.map((sel: any) => `${sel.name} (${sel.selected_size})`).join(" + ")
+                  : [item.color, item.size_letter, item.size_inch ? `${item.size_inch}"` : ""].filter(Boolean).join(" / ");
                 return (
                   <div key={idx} className="card border-0 p-3 rounded-3 shadow-sm bg-white d-flex flex-row gap-3 align-items-start">
                     {/* Product Image */}

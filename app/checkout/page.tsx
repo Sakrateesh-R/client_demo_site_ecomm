@@ -389,7 +389,9 @@ export default function CheckoutPage() {
 
                 <div className="d-flex flex-column gap-3 overflow-y-auto mb-4" style={{ maxHeight: "300px" }}>
                   {cartItems.map((item, idx) => {
-                    const attrs = [item.color, item.size_letter, item.size_inch ? `${item.size_inch}"` : ""].filter(Boolean).join(" / ");
+                    const attrs = item.is_combo && item.combo_selections
+                      ? item.combo_selections.map((sel: any) => `${sel.name} (${sel.selected_size})`).join(" + ")
+                      : [item.color, item.size_letter, item.size_inch ? `${item.size_inch}"` : ""].filter(Boolean).join(" / ");
                     return (
                       <div key={idx} className="d-flex align-items-center gap-3">
                         <div className="rounded overflow-hidden bg-light border border-light flex-shrink-0" style={{ width: "60px", height: "60px" }}>

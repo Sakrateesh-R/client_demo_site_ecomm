@@ -93,6 +93,16 @@ export async function POST(request: Request) {
 
     // 2. Insert order
     const orderNumber = `ORD-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const sizeDetails = items.map((item: any) => {
+      if (item.is_combo && item.combo_selections) {
+        const selectionsStr = item.combo_selections.map((sel: any) => `${sel.name} (Size: ${sel.selected_size})`).join(", ");
+        return `${item.name} [Combo: ${selectionsStr}] (Qty: ${item.quantity})`;
+      }
+      const sizeStr = item.size_letter || item.size_inch || "Standard";
+      const colorStr = item.color ? `, Color: ${item.color}` : "";
+      return `${item.name} (Size: ${sizeStr}${colorStr}) (Qty: ${item.quantity})`;
+    }).join(" | ");
+
     const { data: order, error: orderError } = await adminSupabase
       .from("orders")
       .insert({
@@ -107,7 +117,7 @@ export async function POST(request: Request) {
         payment_method: payment_method || "cod",
         billing_address_id: address.id,
         shipping_address_id: address.id,
-        notes: `Customer Phone: ${phone}. Email: ${email}. Name: ${customer_name}.`,
+        notes: `Phone: ${phone}. Email: ${email}. Name: ${customer_name}. Items: ${sizeDetails}.`,
       })
       .select()
       .single();
@@ -132,42 +142,102 @@ export async function POST(request: Request) {
     // 4. Sync inventory levels
     for (const item of items) {
       try {
-        const { data: prod } = await adminSupabase
-          .from("products")
-          .select("*")
-          .eq("id", item.product_id)
-          .single();
+        if (item.is_combo && item.combo_selections) {
+          // Decrement stock for each item in the combo
+          for (const sel of item.combo_selections) {
+            try {
+              const { data: subProd } = await adminSupabase
+                .from("products")
+                .select("*")
+                .eq("id", sel.product_id)
+                .single();
 
-        if (prod) {
-          const parsed = JSON.parse(prod.meta_keywords || "{}");
-          if (parsed.inventory_type === "variant") {
-            if (item.size_letter) {
-              parsed.letters_inventory = (parsed.letters_inventory || []).map((i: any) =>
-                i.size === item.size_letter ? { ...i, quantity: Math.max(0, i.quantity - item.quantity) } : i
-              );
-            }
-            if (item.size_inch) {
-              parsed.inches_inventory = (parsed.inches_inventory || []).map((i: any) =>
-                i.size === item.size_inch ? { ...i, quantity: Math.max(0, i.quantity - item.quantity) } : i
-              );
-            }
-            const totalStock = (parsed.letters_inventory || []).reduce((sum: number, curr: any) => sum + curr.quantity, 0) +
-                               (parsed.inches_inventory || []).reduce((sum: number, curr: any) => sum + curr.quantity, 0);
+              if (subProd) {
+                const subParsed = JSON.parse(subProd.meta_keywords || "{}");
+                if (subParsed.inventory_type === "variant") {
+                  let updated = false;
+                  
+                  if (subParsed.letters_inventory) {
+                    subParsed.letters_inventory = subParsed.letters_inventory.map((i: any) => {
+                      if (i.size === sel.selected_size) {
+                        updated = true;
+                        return { ...i, quantity: Math.max(0, i.quantity - item.quantity) };
+                      }
+                      return i;
+                    });
+                  }
+                  
+                  if (!updated && subParsed.inches_inventory) {
+                    subParsed.inches_inventory = subParsed.inches_inventory.map((i: any) => {
+                      if (i.size === sel.selected_size) {
+                        return { ...i, quantity: Math.max(0, i.quantity - item.quantity) };
+                      }
+                      return i;
+                    });
+                  }
 
-            await adminSupabase
-              .from("products")
-              .update({
-                meta_keywords: JSON.stringify(parsed),
-                stock_quantity: totalStock,
-              })
-              .eq("id", item.product_id);
-          } else {
-            await adminSupabase
-              .from("products")
-              .update({
-                stock_quantity: Math.max(0, prod.stock_quantity - item.quantity),
-              })
-              .eq("id", item.product_id);
+                  const subTotalStock = (subParsed.letters_inventory || []).reduce((sum: number, curr: any) => sum + curr.quantity, 0) +
+                                       (subParsed.inches_inventory || []).reduce((sum: number, curr: any) => sum + curr.quantity, 0);
+
+                  await adminSupabase
+                    .from("products")
+                    .update({
+                      meta_keywords: JSON.stringify(subParsed),
+                      stock_quantity: subTotalStock,
+                    })
+                    .eq("id", sel.product_id);
+                } else {
+                  await adminSupabase
+                    .from("products")
+                    .update({
+                      stock_quantity: Math.max(0, subProd.stock_quantity - item.quantity),
+                    })
+                    .eq("id", sel.product_id);
+                }
+              }
+            } catch (subErr) {
+              console.error("Error decrementing sub-product stock in combo:", sel, subErr);
+            }
+          }
+        } else {
+          // Standard product/variant stock decrement
+          const { data: prod } = await adminSupabase
+            .from("products")
+            .select("*")
+            .eq("id", item.product_id)
+            .single();
+
+          if (prod) {
+            const parsed = JSON.parse(prod.meta_keywords || "{}");
+            if (parsed.inventory_type === "variant") {
+              if (item.size_letter) {
+                parsed.letters_inventory = (parsed.letters_inventory || []).map((i: any) =>
+                  i.size === item.size_letter ? { ...i, quantity: Math.max(0, i.quantity - item.quantity) } : i
+                );
+              }
+              if (item.size_inch) {
+                parsed.inches_inventory = (parsed.inches_inventory || []).map((i: any) =>
+                  i.size === item.size_inch ? { ...i, quantity: Math.max(0, i.quantity - item.quantity) } : i
+                );
+              }
+              const totalStock = (parsed.letters_inventory || []).reduce((sum: number, curr: any) => sum + curr.quantity, 0) +
+                                 (parsed.inches_inventory || []).reduce((sum: number, curr: any) => sum + curr.quantity, 0);
+
+              await adminSupabase
+                .from("products")
+                .update({
+                  meta_keywords: JSON.stringify(parsed),
+                  stock_quantity: totalStock,
+                })
+                .eq("id", item.product_id);
+            } else {
+              await adminSupabase
+                .from("products")
+                .update({
+                  stock_quantity: Math.max(0, prod.stock_quantity - item.quantity),
+                })
+                .eq("id", item.product_id);
+            }
           }
         }
       } catch (err) {

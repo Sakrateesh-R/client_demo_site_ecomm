@@ -78,6 +78,7 @@ export default function AdminLayout({
     { href: "/admin/marketing", label: "Marketing", icon: "bi-percent" },
     { href: "/admin/cms", label: "Homepage CMS", icon: "bi-window-sidebar" },
     { href: "/admin/templates", label: "Templates", icon: "bi-palette" },
+    { href: "/admin/combos", label: "Combos", icon: "bi-box" },
     { href: "/admin/reports", label: "Reports", icon: "bi-graph-up" },
     { href: "/admin/settings", label: "Settings", icon: "bi-gear" },
   ];

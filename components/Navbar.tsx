@@ -13,6 +13,9 @@ export default function Navbar() {
   const [categories, setCategories] = useState<any[]>([]);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [mobileCatOpen, setMobileCatOpen] = useState(false);
+  const [brands, setBrands] = useState<any[]>([]);
+  const [showBrandDropdown, setShowBrandDropdown] = useState(false);
+  const [mobileBrandOpen, setMobileBrandOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const router = useRouter();
 
@@ -57,7 +60,19 @@ export default function Navbar() {
         console.error("Failed to fetch categories", err);
       }
     };
+    const fetchBrands = async () => {
+      try {
+        const res = await fetch("/api/brands");
+        if (res.ok) {
+          const data = await res.json();
+          setBrands(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch brands", err);
+      }
+    };
     fetchCategories();
+    fetchBrands();
   }, []);
 
   useEffect(() => {
@@ -128,6 +143,45 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+
+            {/* Brands Dropdown */}
+            <div 
+              className="position-relative"
+              onMouseEnter={() => setShowBrandDropdown(true)}
+              onMouseLeave={() => setShowBrandDropdown(false)}
+            >
+              <button 
+                type="button"
+                className="nav-link-wix text-decoration-none bg-transparent border-0 p-0 d-flex align-items-center gap-1"
+                style={{ cursor: "pointer", fontWeight: "inherit", color: "inherit", outline: "none" }}
+              >
+                Brands <i className="bi bi-chevron-down small" style={{ fontSize: "0.75rem" }}></i>
+              </button>
+
+              {showBrandDropdown && brands.length > 0 && (
+                <div 
+                  className="position-absolute top-100 start-0 bg-white border border-light shadow rounded-3 py-2 z-3"
+                  style={{ zIndex: 1200, minWidth: "180px" }}
+                >
+                  {brands.map((b) => (
+                    <Link
+                      key={b.id}
+                      href={`/brand/${b.slug}`}
+                      className="dropdown-item text-start text-truncate small py-2 px-3 border-0 bg-transparent text-dark hover-light"
+                      style={{ fontSize: "0.85rem", cursor: "pointer" }}
+                      onClick={() => setShowBrandDropdown(false)}
+                    >
+                      {b.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Link href="/combos" className="nav-link-wix text-decoration-none">
+              Combos
+            </Link>
+
             <a href="#seasonal-picks" className="nav-link-wix text-decoration-none">
               Seasonal Picks
             </a>
@@ -295,6 +349,42 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+
+            {/* Mobile Brands Accordion */}
+            <div className="mb-1">
+              <button 
+                type="button"
+                onClick={() => setMobileBrandOpen(!mobileBrandOpen)}
+                className="nav-link-wix w-100 text-start text-decoration-none py-2 bg-transparent border-0 d-flex align-items-center justify-content-between"
+                style={{ outline: "none" }}
+              >
+                <span>Brands</span>
+                <i className={`bi ${mobileBrandOpen ? "bi-chevron-up" : "bi-chevron-down"} small text-secondary`}></i>
+              </button>
+              
+              {mobileBrandOpen && brands.length > 0 && (
+                <div className="ps-3 d-flex flex-column gap-2 mt-1 border-start border-light ms-2">
+                  {brands.map((b) => (
+                    <Link
+                      key={b.id}
+                      href={`/brand/${b.slug}`}
+                      onClick={() => setIsOpen(false)}
+                      className="nav-link-wix text-decoration-none py-1.5 text-secondary fs-9"
+                    >
+                      {b.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Link 
+              href="/combos" 
+              onClick={() => setIsOpen(false)} 
+              className="nav-link-wix text-decoration-none py-2"
+            >
+              Combos
+            </Link>
 
             <a 
               href="#seasonal-picks" 

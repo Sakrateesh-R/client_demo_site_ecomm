@@ -23,6 +23,7 @@ export default function ProductDetailPage() {
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedLetterSize, setSelectedLetterSize] = useState<string>("");
   const [selectedInchSize, setSelectedInchSize] = useState<string>("");
+  const [comboSelections, setComboSelections] = useState<Record<string, string>>({});
 
   const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL", "3XL", "Free Size"];
 
@@ -121,6 +122,15 @@ export default function ProductDetailPage() {
               
               if (firstInStock) setSelectedInchSize(firstInStock);
             }
+            if (parsed.is_combo && parsed.combo_products) {
+              const initialComboSel: Record<string, string> = {};
+              parsed.combo_products.forEach((cp: any) => {
+                if (cp.sizes && cp.sizes.length > 0) {
+                  initialComboSel[cp.product_id] = cp.sizes[0];
+                }
+              });
+              setComboSelections(initialComboSel);
+            }
           } catch (e) {}
         }
       } catch (err: any) {
@@ -135,16 +145,56 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     const mainImg = product.product_images?.find((img: any) => img.is_main) || product.product_images?.[0];
-    addToCart({
-      id: product.id,
-      name: product.name,
-      price: Number(product.price),
-      image_url: mainImg?.image_url || "",
-      quantity,
-      color: selectedColor || undefined,
-      size_letter: selectedLetterSize || undefined,
-      size_inch: selectedInchSize || undefined,
-    });
+    
+    // Check if combo
+    let isCombo = false;
+    let comboProductsList: any[] = [];
+    if (product.meta_keywords) {
+      try {
+        const parsed = JSON.parse(product.meta_keywords);
+        if (parsed.is_combo) {
+          isCombo = true;
+          comboProductsList = parsed.combo_products || [];
+        }
+      } catch (e) {}
+    }
+
+    if (isCombo) {
+      // Validate all sizes selected
+      const unselected = comboProductsList.some((cp) => !comboSelections[cp.product_id]);
+      if (unselected) {
+        toast.error("Please select a size for all products in the combo.");
+        return;
+      }
+
+      // Build selections array
+      const selections = comboProductsList.map((cp) => ({
+        product_id: cp.product_id,
+        name: cp.name,
+        selected_size: comboSelections[cp.product_id],
+      }));
+
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: Number(product.price),
+        image_url: mainImg?.image_url || "",
+        quantity,
+        is_combo: true,
+        combo_selections: selections,
+      });
+    } else {
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: Number(product.price),
+        image_url: mainImg?.image_url || "",
+        quantity,
+        color: selectedColor || undefined,
+        size_letter: selectedLetterSize || undefined,
+        size_inch: selectedInchSize || undefined,
+      });
+    }
     toast.success("Added to shopping bag!");
   };
 
@@ -296,6 +346,58 @@ export default function ProductDetailPage() {
 
                 {/* Parse options */}
                 {(() => {
+                  let isCombo = false;
+                  let comboProductsList: any[] = [];
+                  if (product.meta_keywords) {
+                    try {
+                      const parsed = JSON.parse(product.meta_keywords);
+                      if (parsed.is_combo) {
+                        isCombo = true;
+                        comboProductsList = parsed.combo_products || [];
+                      }
+                    } catch (e) {}
+                  }
+
+                  if (isCombo) {
+                    return (
+                      <div className="bg-white p-3 rounded-3 border border-light mb-4">
+                        <h6 className="fw-bold text-dark mb-3 text-uppercase tracking-wider" style={{ fontSize: "0.75rem" }}>Configure Combo Items</h6>
+                        {comboProductsList.map((cp) => (
+                          <div key={cp.product_id} className="mb-3 pb-3 border-bottom border-light last-border-0">
+                            <span className="text-secondary small fw-bold d-block mb-2 text-uppercase tracking-wider" style={{ fontSize: "0.7rem" }}>
+                              {cp.name}
+                            </span>
+                            <div className="d-flex flex-wrap gap-2">
+                              {cp.sizes.map((sz: string) => {
+                                const isSelected = comboSelections[cp.product_id] === sz;
+                                return (
+                                  <button
+                                    key={sz}
+                                    type="button"
+                                    onClick={() => {
+                                      setComboSelections((prev) => ({
+                                        ...prev,
+                                        [cp.product_id]: sz,
+                                      }));
+                                    }}
+                                    className={`btn btn-sm rounded-3 transition-all fs-8 fw-semibold ${
+                                      isSelected 
+                                        ? "btn-primary shadow-sm" 
+                                        : "btn-outline-secondary bg-white text-secondary"
+                                    }`}
+                                    style={{ minWidth: "42px" }}
+                                  >
+                                    {sz}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }
+
                   let sizesInchesArr: string[] = [];
                   let sizesLettersArr: string[] = [];
                   let colorsArr: string[] = [];
