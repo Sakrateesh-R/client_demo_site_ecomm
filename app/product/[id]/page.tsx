@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 import Navbar from "@/components/Navbar";
 import { createClient } from "@/lib/supabase/client";
 import toast from "react-hot-toast";

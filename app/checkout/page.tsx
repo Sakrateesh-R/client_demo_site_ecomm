@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getCart, CartItem } from "@/lib/cart";
+
+export const dynamic = "force-dynamic";
 import Navbar from "@/components/Navbar";
 import toast from "react-hot-toast";
 import Footer from "@/components/Footer";
