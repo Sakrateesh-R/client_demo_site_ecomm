@@ -109,8 +109,8 @@ export default function AdminLayout({
         {/* Brand Header */}
         <div className="p-4 border-bottom border-light d-flex justify-content-between align-items-center">
           <Link href="/" className="text-decoration-none d-flex align-items-center gap-2">
-            <span className="bg-primary text-white d-flex align-items-center justify-content-center rounded-sm font-monospace fw-bold" style={{ width: "30px", height: "30px" }}>A</span>
-            <span className="h6 fw-bold mb-0 text-dark tracking-wide">Aura.weaves</span>
+            <span className="bg-primary text-white d-flex align-items-center justify-content-center rounded-sm font-monospace fw-bold" style={{ width: "30px", height: "30px" }}>V</span>
+            <span className="h6 fw-bold mb-0 text-dark tracking-wide">Vasantham Silks</span>
           </Link>
           <button 
             className="btn btn-sm border-0 d-md-none p-1 text-secondary" 

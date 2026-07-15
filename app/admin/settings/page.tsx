@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const [taxPercent, setTaxPercent] = useState(0);
   const [codActive, setCodActive] = useState(true);
   const [razorpayActive, setRazorpayActive] = useState(false);
+  const [scrollAnnouncement, setScrollAnnouncement] = useState(true);
 
   const fetchSettings = async () => {
     setLoading(true);
@@ -28,6 +29,7 @@ export default function SettingsPage() {
         setStoreName(data.general.store_name || "");
         setSupportEmail(data.general.support_email || "");
         setSupportPhone(data.general.support_phone || "");
+        setScrollAnnouncement(data.general.scroll_announcement === "true");
       }
       if (data.shipping) {
         setShippingRate(parseFloat(data.shipping.flat_rate) || 0);
@@ -60,6 +62,7 @@ export default function SettingsPage() {
         { key: "store_name", value: storeName, group: "general" },
         { key: "support_email", value: supportEmail, group: "general" },
         { key: "support_phone", value: supportPhone, group: "general" },
+        { key: "scroll_announcement", value: scrollAnnouncement ? "true" : "false", group: "general" },
         { key: "flat_rate", value: shippingRate.toString(), group: "shipping" },
         { key: "percentage", value: taxPercent.toString(), group: "tax" },
         { key: "cod_active", value: codActive ? "true" : "false", group: "payment" },
@@ -122,7 +125,7 @@ export default function SettingsPage() {
                   value={storeName} 
                   onChange={(e) => setStoreName(e.target.value)} 
                   className="form-control wix-input" 
-                  placeholder="e.g. Aura.weaves" 
+                  placeholder="e.g. Vasantham Silks" 
                   required
                 />
               </div>
@@ -148,6 +151,22 @@ export default function SettingsPage() {
                   className="form-control wix-input" 
                   placeholder="+1 (555) 019-2834"
                 />
+              </div>
+
+              <div className="form-check form-switch mt-4 p-3 bg-light rounded border border-light">
+                <input 
+                  className="form-check-input ms-0 me-2" 
+                  type="checkbox" 
+                  id="scrollAnnouncementSwitch"
+                  checked={scrollAnnouncement}
+                  onChange={(e) => setScrollAnnouncement(e.target.checked)}
+                />
+                <label className="form-check-label small fw-bold text-dark" htmlFor="scrollAnnouncementSwitch">
+                  Enable Scrolling Header Ticker
+                </label>
+                <span className="d-block text-secondary fs-9 mt-1">
+                  When enabled, active coupon/discount alerts will slide continuously across the top announcement bar.
+                </span>
               </div>
             </div>
           </div>

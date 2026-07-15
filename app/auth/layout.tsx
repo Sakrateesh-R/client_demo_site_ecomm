@@ -31,14 +31,14 @@ export default function AuthLayout({
         {/* Decorative elements */}
         <div className="position-relative z-2 bg-white p-5 rounded-4 shadow-sm" style={{ maxWidth: "480px", border: "var(--border-light)" }}>
           <Link href="/" className="text-decoration-none d-flex align-items-center justify-content-center gap-2 mb-3">
-            <span className="bg-primary text-white d-flex align-items-center justify-content-center rounded-sm font-monospace" style={{ width: "32px", height: "32px", fontWeight: "800", fontSize: "1.1rem" }}>A</span>
+            <span className="bg-primary text-white d-flex align-items-center justify-content-center rounded-sm font-monospace" style={{ width: "32px", height: "32px", fontWeight: "800", fontSize: "1.1rem" }}>V</span>
             <span className="h4 fw-bold mb-0 text-dark tracking-wide" style={{ fontFamily: "var(--font-heading)" }}>
-              Aura.weaves
+              Vasantham Silks
             </span>
           </Link>
           <div className="w-25 bg-primary mx-auto my-3" style={{ height: "2px", opacity: 0.8 }} />
           <p className="lead fw-light mb-0 fs-6 text-secondary" style={{ letterSpacing: "0.5px", lineHeight: "1.7", fontWeight: "400" }}>
-            Step into a world of timeless craftsmanship, premium luxury threads, and bespoke hand-woven creations.
+            Step into a world of premium women's fashion, comfortable leggings, and beautiful fabrics at affordable prices.
           </p>
         </div>
       </div>
@@ -49,9 +49,9 @@ export default function AuthLayout({
           {/* Mobile Header */}
           <div className="d-md-none text-center mb-4">
             <h1 className="h3 text-uppercase mb-1 text-dark fw-bold" style={{ fontFamily: "var(--font-heading)" }}>
-              Aura.weaves
+              Vasantham Silks
             </h1>
-            <p className="small text-secondary tracking-widest text-uppercase fs-8" style={{ letterSpacing: "2px" }}>Atelier</p>
+            <p className="small text-secondary tracking-widest text-uppercase fs-8" style={{ letterSpacing: "2px" }}>Premium Fashion</p>
           </div>
           {children}
         </div>

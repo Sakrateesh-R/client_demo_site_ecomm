@@ -3,12 +3,28 @@
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
+const parseOrderNotes = (notesStr: string) => {
+  if (!notesStr) return { phone: "", email: "", name: "", items: "" };
+  const phoneMatch = notesStr.match(/Phone:\s*(.*?)\.\s*Email:/i);
+  const emailMatch = notesStr.match(/Email:\s*(.*?)\.\s*Name:/i);
+  const nameMatch = notesStr.match(/Name:\s*(.*?)\.\s*Items:/i);
+  const itemsMatch = notesStr.match(/Items:\s*(.*)$/i);
+  
+  return {
+    phone: phoneMatch ? phoneMatch[1] : "",
+    email: emailMatch ? emailMatch[1] : "",
+    name: nameMatch ? nameMatch[1] : "",
+    items: itemsMatch ? itemsMatch[1].replace(/\.$/, "") : "",
+  };
+};
+
 export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [updating, setUpdating] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [showModal, setShowModal] = useState(false);
 
   // Form states for status updates
   const [newStatus, setNewStatus] = useState("");
@@ -72,6 +88,7 @@ export default function OrdersPage() {
       const updated = await res.json();
       toast.success("Order status updated successfully!", { id: toastId });
       setSelectedOrder(null);
+      setShowModal(false);
       fetchOrders(); // Refresh order desk
     } catch (err: any) {
       toast.error(err.message || "Failed to update order", { id: toastId });
@@ -116,7 +133,7 @@ export default function OrdersPage() {
 
       <div className="row g-4">
         {/* Orders Table Grid */}
-        <div className={selectedOrder ? "col-12 col-lg-8" : "col-12"}>
+        <div className="col-12">
           <div className="card border-0 p-4 rounded-4 shadow-sm bg-white">
             {loading ? (
               <div className="text-center py-5">
@@ -154,7 +171,14 @@ export default function OrdersPage() {
                       else if (ord.status === "cancelled") badgeClass = "bg-danger-subtle text-danger";
 
                       return (
-                        <tr key={ord.id} className="small border-bottom border-light">
+                        <tr 
+                          key={ord.id} 
+                          className="small border-bottom border-light cursor-pointer align-middle"
+                          onClick={() => {
+                            setSelectedOrder(ord);
+                            setShowModal(true);
+                          }}
+                        >
                           <td>
                             <div className="fw-bold text-dark">{ord.order_number}</div>
                             <span className="text-muted fs-9">{new Date(ord.created_at).toLocaleDateString()}</span>
@@ -175,9 +199,12 @@ export default function OrdersPage() {
                               {ord.payment_status}
                             </span>
                           </td>
-                          <td className="text-end">
+                          <td className="text-end" onClick={(e) => e.stopPropagation()}>
                             <button 
-                              onClick={() => setSelectedOrder(ord)}
+                              onClick={() => {
+                                setSelectedOrder(ord);
+                                setShowModal(true);
+                              }}
                               className="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 fs-8 fw-semibold"
                             >
                               Manage
@@ -192,95 +219,229 @@ export default function OrdersPage() {
             )}
           </div>
         </div>
+      </div>
 
-        {/* Fulfillment update Sidebar */}
-        {selectedOrder && (
-          <div className="col-12 col-lg-4 animate-fade-in">
-            <div className="card border-0 p-4 rounded-4 shadow-sm bg-white sticky-top" style={{ top: "90px" }}>
-              <div className="d-flex justify-content-between align-items-center mb-4">
-                <h5 className="fw-bold mb-0 text-dark" style={{ fontFamily: "var(--font-heading)" }}>Manage Fulfillment</h5>
-                <button type="button" className="btn-close" onClick={() => setSelectedOrder(null)}></button>
-              </div>
+      {/* Order Details Modal Popup */}
+      {showModal && selectedOrder && (() => {
+        const parsedNotes = parseOrderNotes(selectedOrder.notes);
+        const productLines = parsedNotes.items ? parsedNotes.items.split(" | ") : [];
+        return (
+          <div className="modal show d-block animate-fade-in" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 2050 }}>
+            <div className="modal-dialog modal-lg modal-dialog-centered">
+              <div className="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                <div className="modal-header border-light bg-light p-4 rounded-top-4">
+                  <div>
+                    <h5 className="modal-title fw-bold text-dark" style={{ fontFamily: "var(--font-heading)" }}>
+                      Order Details: {selectedOrder.order_number}
+                    </h5>
+                    <span className="text-secondary small">Placed on {new Date(selectedOrder.created_at).toLocaleString()}</span>
+                  </div>
+                  <button 
+                    type="button" 
+                    className="btn-close" 
+                    onClick={() => {
+                      setSelectedOrder(null);
+                      setShowModal(false);
+                    }}
+                  ></button>
+                </div>
 
-              <div className="alert bg-light border border-light text-dark mb-4 py-3 rounded-3">
-                <h6 className="fw-bold text-dark small mb-1">Invoice: {selectedOrder.order_number}</h6>
-                <span className="text-secondary small">Email: {selectedOrder.profiles?.email || "Guest Client"}</span>
-                <div className="d-flex justify-content-between mt-2 pt-2 border-top border-secondary-subtle">
-                  <span className="small text-secondary">Total Value:</span>
-                  <span className="fw-bold small">${Number(selectedOrder.total_amount).toFixed(2)}</span>
+                <div className="modal-body p-4 bg-white" style={{ maxHeight: "calc(100vh - 180px)", overflowY: "auto" }}>
+                  <div className="row g-4 mb-4">
+                    {/* Customer details */}
+                    <div className="col-12 col-md-6">
+                      <div className="card h-100 border border-light p-3 rounded-3 bg-light-subtle shadow-sm">
+                        <h6 className="fw-bold text-dark mb-3 small text-uppercase tracking-wider">
+                          <i className="bi bi-person me-2 text-primary"></i>Customer Details
+                        </h6>
+                        <div className="d-flex flex-column gap-2 small">
+                          <div className="d-flex justify-content-between">
+                            <span className="text-secondary">Name:</span>
+                            <span className="fw-semibold text-dark">{parsedNotes.name || "Guest Client"}</span>
+                          </div>
+                          <div className="d-flex justify-content-between">
+                            <span className="text-secondary">Email:</span>
+                            <span className="fw-semibold text-dark">{parsedNotes.email || selectedOrder.profiles?.email || "N/A"}</span>
+                          </div>
+                          <div className="d-flex justify-content-between">
+                            <span className="text-secondary">Phone:</span>
+                            <span className="fw-semibold text-dark">{parsedNotes.phone || selectedOrder.shipping_address?.phone || "N/A"}</span>
+                          </div>
+                          <div className="d-flex justify-content-between border-top pt-2 mt-1">
+                            <span className="text-secondary">Payment Method:</span>
+                            <span className="fw-bold text-uppercase text-primary font-monospace">{selectedOrder.payment_method === "cod" ? "Cash On Delivery (COD)" : selectedOrder.payment_method}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Shipping Address */}
+                    <div className="col-12 col-md-6">
+                      <div className="card h-100 border border-light p-3 rounded-3 bg-light-subtle shadow-sm">
+                        <h6 className="fw-bold text-dark mb-3 small text-uppercase tracking-wider">
+                          <i className="bi bi-geo-alt me-2 text-primary"></i>Shipping Address
+                        </h6>
+                        <div className="small text-dark">
+                          {selectedOrder.shipping_address ? (
+                            <>
+                              <div className="fw-semibold mb-1">{parsedNotes.name || "Recipient"}</div>
+                              <div>{selectedOrder.shipping_address.address_line1}</div>
+                              {selectedOrder.shipping_address.address_line2 && <div>{selectedOrder.shipping_address.address_line2}</div>}
+                              <div>{selectedOrder.shipping_address.city}, {selectedOrder.shipping_address.state} - {selectedOrder.shipping_address.postal_code}</div>
+                              <div className="text-secondary">{selectedOrder.shipping_address.country}</div>
+                              <div className="mt-2 text-secondary"><i className="bi bi-telephone me-1"></i> {selectedOrder.shipping_address.phone}</div>
+                            </>
+                          ) : (
+                            <span className="text-muted">No shipping address recorded.</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Product details */}
+                  <div className="card border border-light p-3 rounded-3 mb-4 shadow-sm">
+                    <h6 className="fw-bold text-dark mb-3 small text-uppercase tracking-wider">
+                      <i className="bi bi-box-seam me-2 text-primary"></i>Product Details
+                    </h6>
+                    <div className="table-responsive">
+                      <table className="table table-sm table-borderless align-middle mb-0">
+                        <thead>
+                          <tr className="border-bottom border-light text-secondary small fs-9 text-uppercase">
+                            <th>Item Description</th>
+                            <th className="text-end">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {productLines.map((line, index) => {
+                            const displayLine = line.trim().startsWith("undefined")
+                              ? line.replace("undefined", "Premium Apparel / Fabric Item")
+                              : line;
+                            return (
+                              <tr key={index} className="border-bottom border-light-subtle">
+                                <td className="py-2.5 text-dark small fw-medium">{displayLine}</td>
+                                <td className="py-2.5 text-end">
+                                  <span className="badge bg-light text-secondary border border-light font-monospace" style={{ fontSize: "0.7rem" }}>
+                                    Ready
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Order Totals Summary */}
+                  <div className="card border border-light p-3 rounded-3 bg-light-subtle mb-4 shadow-sm">
+                    <div className="d-flex flex-column gap-2 small">
+                      <div className="d-flex justify-content-between text-secondary">
+                        <span>Subtotal:</span>
+                        <span className="fw-semibold text-dark">₹{Number(selectedOrder.subtotal_amount || selectedOrder.total_amount - selectedOrder.shipping_amount + selectedOrder.discount_amount).toFixed(2)}</span>
+                      </div>
+                      {Number(selectedOrder.discount_amount) > 0 && (
+                        <div className="d-flex justify-content-between text-success">
+                          <span>Discount Applied:</span>
+                          <span>-₹{Number(selectedOrder.discount_amount).toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="d-flex justify-content-between text-secondary">
+                        <span>Shipping Cost:</span>
+                        <span className="fw-semibold text-dark">₹{Number(selectedOrder.shipping_amount).toFixed(2)}</span>
+                      </div>
+                      <div className="d-flex justify-content-between border-top pt-2 mt-1">
+                        <span className="fw-bold text-dark">Total Amount:</span>
+                        <span className="fw-bold text-primary h6 mb-0">₹{Number(selectedOrder.total_amount).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Fulfillment Update Form */}
+                  <div className="card border border-light p-3 rounded-3 bg-white shadow-sm">
+                    <h6 className="fw-bold text-dark mb-3 small text-uppercase tracking-wider">
+                      <i className="bi bi-pencil-square me-2 text-primary"></i>Update Fulfillment Status
+                    </h6>
+                    <form onSubmit={handleUpdateOrder}>
+                      <div className="row g-3">
+                        <div className="col-12 col-md-6">
+                          <label className="form-label fs-9 fw-semibold text-secondary mb-1">Fulfillment Status</label>
+                          <select 
+                            value={newStatus}
+                            onChange={(e) => setNewStatus(e.target.value)}
+                            className="form-select form-select-sm"
+                            style={{ fontSize: "0.85rem", borderRadius: "10px" }}
+                          >
+                            <option value="pending">Pending review</option>
+                            <option value="confirmed">Confirmed / Paid</option>
+                            <option value="shipped">Shipped package</option>
+                            <option value="delivered">Delivered destination</option>
+                            <option value="cancelled">Cancelled order</option>
+                          </select>
+                        </div>
+                        <div className="col-12 col-md-6">
+                          <label className="form-label fs-9 fw-semibold text-secondary mb-1">Payment Status</label>
+                          <select 
+                            value={newPaymentStatus}
+                            onChange={(e) => setNewPaymentStatus(e.target.value)}
+                            className="form-select form-select-sm"
+                            style={{ fontSize: "0.85rem", borderRadius: "10px" }}
+                          >
+                            <option value="pending">Pending / COD Unpaid</option>
+                            <option value="paid">Paid</option>
+                            <option value="failed">Failed / Refunded</option>
+                          </select>
+                        </div>
+                        <div className="col-12 col-md-6">
+                          <label className="form-label fs-9 fw-semibold text-secondary mb-1">Carrier Provider</label>
+                          <input 
+                            type="text" 
+                            value={shippingCarrier}
+                            onChange={(e) => setShippingCarrier(e.target.value)}
+                            className="form-control form-control-sm"
+                            style={{ fontSize: "0.85rem", borderRadius: "10px" }}
+                            placeholder="e.g. DHL, FedEx, Bluedart"
+                          />
+                        </div>
+                        <div className="col-12 col-md-6">
+                          <label className="form-label fs-9 fw-semibold text-secondary mb-1">Tracking Reference</label>
+                          <input 
+                            type="text" 
+                            value={trackingNumber}
+                            onChange={(e) => setTrackingNumber(e.target.value)}
+                            className="form-control form-control-sm"
+                            style={{ fontSize: "0.85rem", borderRadius: "10px" }}
+                            placeholder="e.g. TRK-872412849"
+                          />
+                        </div>
+                      </div>
+                      <div className="d-flex justify-content-end gap-2 mt-4 pt-2 border-top border-light">
+                        <button 
+                          type="button" 
+                          className="btn btn-outline-secondary btn-sm px-4 rounded-pill fw-semibold"
+                          onClick={() => {
+                            setSelectedOrder(null);
+                            setShowModal(false);
+                          }}
+                        >
+                          Close
+                        </button>
+                        <button 
+                          type="submit" 
+                          disabled={updating} 
+                          className="btn btn-primary btn-sm px-4 rounded-pill fw-semibold"
+                        >
+                          {updating ? "Saving..." : "Apply Updates"}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
                 </div>
               </div>
-
-              <form onSubmit={handleUpdateOrder}>
-                {/* Order Status */}
-                <div className="mb-3">
-                  <label className="form-label small fw-semibold text-secondary">Fulfillment Status</label>
-                  <select 
-                    value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value)}
-                    className="form-select"
-                    style={{ fontSize: "0.85rem" }}
-                  >
-                    <option value="pending">Pending review</option>
-                    <option value="confirmed">Confirmed / Paid</option>
-                    <option value="shipped">Shipped package</option>
-                    <option value="delivered">Delivered destination</option>
-                    <option value="cancelled">Cancelled order</option>
-                  </select>
-                </div>
-
-                {/* Payment Status */}
-                <div className="mb-3">
-                  <label className="form-label small fw-semibold text-secondary">Payment Status</label>
-                  <select 
-                    value={newPaymentStatus}
-                    onChange={(e) => setNewPaymentStatus(e.target.value)}
-                    className="form-select"
-                    style={{ fontSize: "0.85rem" }}
-                  >
-                    <option value="unpaid">Unpaid / COD Pending</option>
-                    <option value="paid">Paid</option>
-                    <option value="refunded">Refunded / Returned</option>
-                  </select>
-                </div>
-
-                {/* Shipping Carrier */}
-                <div className="mb-3">
-                  <label className="form-label small fw-semibold text-secondary">Carrier Provider</label>
-                  <input 
-                    type="text" 
-                    value={shippingCarrier}
-                    onChange={(e) => setShippingCarrier(e.target.value)}
-                    className="form-control wix-input"
-                    placeholder="e.g. DHL, FedEx, Bluedart"
-                  />
-                </div>
-
-                {/* Tracking code */}
-                <div className="mb-4">
-                  <label className="form-label small fw-semibold text-secondary">Tracking Reference</label>
-                  <input 
-                    type="text" 
-                    value={trackingNumber}
-                    onChange={(e) => setTrackingNumber(e.target.value)}
-                    className="form-control wix-input"
-                    placeholder="e.g. TRK-872412849"
-                  />
-                </div>
-
-                <div className="d-flex gap-2">
-                  <button type="button" className="btn btn-wix-outline w-100" onClick={() => setSelectedOrder(null)}>
-                    Cancel
-                  </button>
-                  <button type="submit" disabled={updating} className="btn btn-wix-primary w-100">
-                    {updating ? "Saving..." : "Apply Updates"}
-                  </button>
-                </div>
-              </form>
             </div>
           </div>
-        )}
-      </div>
+        );
+      })()}
     </div>
   );
 }

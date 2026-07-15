@@ -86,29 +86,29 @@ export default async function Home() {
   const defaultBanners = [
     {
       id: "card-1",
-      title: "Royal Banarasi Silk",
-      subtitle: "Saree Collection",
-      image_url: "/images/hero-silk.png",
+      title: "Fashion That Defines Your Style",
+      subtitle: "Fly Feel Leggings & Bottom Wear",
+      image_url: "/images/lycra-leggings.png",
       redirection_url: "#seasonal-picks",
-      bg_color: "#2b568c",
+      bg_color: "#1e3b2e",
       is_double_width: true,
     },
     {
       id: "card-2",
-      title: "Artisan Pashmina",
-      subtitle: "Fine Cashmere",
-      image_url: "/images/hero-cashmere.png",
+      title: "Everyday Comfort Essentials",
+      subtitle: "Pajamas & Innerwear",
+      image_url: "/images/cotton-dupatta.png",
       redirection_url: "#seasonal-picks",
-      bg_color: "#cf6752",
+      bg_color: "#5c4033",
       is_double_width: false,
     },
     {
       id: "card-3",
-      title: "Organic Weaves",
-      subtitle: "Linens",
-      image_url: "/images/hero-linen.png",
+      title: "Aesthetic Dupattas",
+      subtitle: "Cotton Stoles",
+      image_url: "/images/category-dupatta.png",
       redirection_url: "#seasonal-picks",
-      bg_color: "#e8c973",
+      bg_color: "#7c2d12",
       is_double_width: false,
     },
   ];
@@ -195,13 +195,13 @@ export default async function Home() {
           <div className="row align-items-center mb-5">
             <div className="col-12 col-lg-6 mb-4 mb-lg-0">
               <h2 className="display-4 fw-bold mb-3 text-dark text-capitalize" style={{ fontFamily: "var(--font-heading)", letterSpacing: "-1px" }}>
-                You Can Feel <br />
-                <span className="text-accent" style={{ fontStyle: "italic", fontFamily: "var(--font-serif)", fontWeight: "400" }}>Textile</span> Sense.
+                Fashion That <br />
+                <span className="text-accent" style={{ fontStyle: "italic", fontFamily: "var(--font-serif)", fontWeight: "400" }}>Defines</span> Your Style.
               </h2>
             </div>
             <div className="col-12 col-lg-6 d-md-flex align-items-center justify-content-lg-end gap-4">
               <p className="text-secondary small mb-3 mb-md-0 mx-lg-3 hero-description" style={{ maxWidth: "340px", lineHeight: "1.6" }}>
-                Aura.weaves is the right place for you to acquire premium artisan textile fabrics with heritage craftsmanship, reasonable pricing, and absolute trust.
+                Discover premium collections of women's fashion, leggings, innerwear, pajama sets, bottom wear, and everyday essentials at Vasantham Silks at affordable prices.
               </p>
               <div className="d-flex gap-2">
                 <a href="#best-offers" className="btn btn-wix-primary text-nowrap text-decoration-none">
@@ -856,13 +856,13 @@ export default async function Home() {
                 <div className="col-12 col-md-8 col-lg-6">
                   <div className="mb-3 text-primary"><i className="bi bi-quote fs-1"></i></div>
                   <p className="lead fs-6 text-dark fw-light mb-4" style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", lineHeight: "1.8" }}>
-                    &ldquo;Aura.weaves provides our design studio with silk of unmatched purity. The golden zari threads remain bright, and the fabric has a wonderful, fluid drape. A truly premium service.&rdquo;
+                    &ldquo;Vasantham Silks provides leggings and bottom wear of unmatched comfort and quality. The fabric stretch is incredible, color remains vibrant after multiple washes, and pricing is extremely reasonable!&rdquo;
                   </p>
                   
                   <div className="d-flex align-items-center justify-content-center gap-2">
-                    <span className="fw-bold small text-dark">Jane Cooper</span>
+                    <span className="fw-bold small text-dark">Priya Dharshini</span>
                     <span className="text-muted small">|</span>
-                    <span className="text-secondary small">Creative Director, Coop Fashion</span>
+                    <span className="text-secondary small">Regular Customer, Tiruppur</span>
                   </div>
                 </div>
               </div>

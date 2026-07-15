@@ -10,7 +10,7 @@ export default function Footer() {
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-    toast.success("Thank you for subscribing to Aura.weaves dispatch!");
+    toast.success("Thank you for subscribing to Vasantham Silks dispatch!");
     setEmail("");
   };
 
@@ -21,17 +21,17 @@ export default function Footer() {
         <div className="row g-4 mb-5 border-bottom border-secondary pb-5">
           <div className="col-12 col-lg-5">
             <Link href="/" className="text-decoration-none d-flex align-items-center gap-2 mb-3">
-              <span className="bg-primary text-white d-flex align-items-center justify-content-center rounded-sm font-monospace fw-bold" style={{ width: "36px", height: "36px", fontSize: "1.2rem" }}>A</span>
+              <span className="bg-primary text-white d-flex align-items-center justify-content-center rounded-sm font-monospace fw-bold" style={{ width: "36px", height: "36px", fontSize: "1.2rem" }}>V</span>
               <span className="h4 fw-bold mb-0 text-white tracking-wide" style={{ fontFamily: "var(--font-heading)" }}>
-                Aura.weaves
+                Vasantham Silks
               </span>
             </Link>
             <p className="text-secondary small mb-4" style={{ maxWidth: "380px", lineHeight: "1.7" }}>
-              Experience the finest handpicked artisan textiles, heritage handloom sarees, luxury pashminas, and organic cotton fabrics crafted for true connoisseurs.
+              Discover premium collections of women's fashion, kurtis, leggings, innerwear, pajama sets, bottom wear, and everyday essentials at affordable prices.
             </p>
             {/* Social Icons */}
             <div className="d-flex align-items-center gap-3">
-              <a href="#" className="text-secondary hover-white fs-5"><i className="bi bi-instagram"></i></a>
+              <a href="https://www.instagram.com/vasantham.silks.tirupur" target="_blank" rel="noopener noreferrer" className="text-secondary hover-white fs-5"><i className="bi bi-instagram"></i></a>
               <a href="#" className="text-secondary hover-white fs-5"><i className="bi bi-pinterest"></i></a>
               <a href="#" className="text-secondary hover-white fs-5"><i className="bi bi-facebook"></i></a>
               <a href="#" className="text-secondary hover-white fs-5"><i className="bi bi-whatsapp"></i></a>
@@ -39,8 +39,8 @@ export default function Footer() {
           </div>
 
           <div className="col-12 col-md-8 col-lg-4 ms-lg-auto">
-            <h6 className="fw-bold mb-3 text-uppercase tracking-wider small" style={{ color: "#f8f9fa" }}>Join the Atelier Circle</h6>
-            <p className="text-secondary small mb-3">Subscribe to receive seasonal collections preview, catalog releases, and artisan stories.</p>
+            <h6 className="fw-bold mb-3 text-uppercase tracking-wider small" style={{ color: "#f8f9fa" }}>Join Our Circle</h6>
+            <p className="text-secondary small mb-3">Subscribe to receive seasonal collections preview, catalog releases, and exclusive discount updates.</p>
             <form onSubmit={handleSubscribe} className="input-group">
               <input 
                 type="email" 
@@ -66,52 +66,52 @@ export default function Footer() {
         <div className="row g-4 mb-5">
           {/* Col 1 */}
           <div className="col-6 col-md-3">
-            <h6 className="fw-bold text-uppercase tracking-wider small mb-3" style={{ color: "#f8f9fa" }}>Shop Fabrics</h6>
+            <h6 className="fw-bold text-uppercase tracking-wider small mb-3" style={{ color: "#f8f9fa" }}>Shop Categories</h6>
             <ul className="list-unstyled d-flex flex-column gap-2 text-secondary small">
-              <li><Link href="/" className="text-decoration-none text-secondary hover-white">Heritage Silk Sarees</Link></li>
-              <li><Link href="/" className="text-decoration-none text-secondary hover-white">Atelier Pashmina</Link></li>
-              <li><Link href="/" className="text-decoration-none text-secondary hover-white">Organic Woven Linen</Link></li>
-              <li><Link href="/" className="text-decoration-none text-secondary hover-white">Premium Brocades</Link></li>
+              <li><Link href="/" className="text-decoration-none text-secondary hover-white">Premium Kurtis</Link></li>
+              <li><Link href="/combos" className="text-decoration-none text-secondary hover-white">Value Combos</Link></li>
+              <li><Link href="/" className="text-decoration-none text-secondary hover-white">Leggings & Bottom Wear</Link></li>
+              <li><Link href="/" className="text-decoration-none text-secondary hover-white">Dupattas & Accessories</Link></li>
             </ul>
           </div>
 
           {/* Col 2 */}
           <div className="col-6 col-md-3">
-            <h6 className="fw-bold text-uppercase tracking-wider small mb-3" style={{ color: "#f8f9fa" }}>Atelier Support</h6>
+            <h6 className="fw-bold text-uppercase tracking-wider small mb-3" style={{ color: "#f8f9fa" }}>Customer Support</h6>
             <ul className="list-unstyled d-flex flex-column gap-2 text-secondary small">
               <li><Link href="/checkout" className="text-decoration-none text-secondary hover-white">Order Tracking</Link></li>
-              <li><Link href="#" className="text-decoration-none text-secondary hover-white">Shipping & Customs</Link></li>
-              <li><Link href="#" className="text-decoration-none text-secondary hover-white">Returns & Exchanges</Link></li>
-              <li><Link href="#" className="text-decoration-none text-secondary hover-white">Textile Maintenance Guide</Link></li>
+              <li><Link href="#" className="text-decoration-none text-secondary hover-white">Shipping Policy</Link></li>
+              <li><Link href="#" className="text-decoration-none text-secondary hover-white">Return & Refund Policy</Link></li>
+              <li><Link href="#" className="text-decoration-none text-secondary hover-white">FAQs</Link></li>
             </ul>
           </div>
 
           {/* Col 3 */}
           <div className="col-6 col-md-3">
-            <h6 className="fw-bold text-uppercase tracking-wider small mb-3" style={{ color: "#f8f9fa" }}>The Chronicle</h6>
+            <h6 className="fw-bold text-uppercase tracking-wider small mb-3" style={{ color: "#f8f9fa" }}>Our Brand</h6>
             <ul className="list-unstyled d-flex flex-column gap-2 text-secondary small">
-              <li><Link href="#" className="text-decoration-none text-secondary hover-white">Our Loom Journey</Link></li>
-              <li><Link href="#" className="text-decoration-none text-secondary hover-white">Artisan Network</Link></li>
-              <li><Link href="#" className="text-decoration-none text-secondary hover-white">Ethical Sourcing</Link></li>
-              <li><Link href="#" className="text-decoration-none text-secondary hover-white">Atelier Journal</Link></li>
+              <li><Link href="#" className="text-decoration-none text-secondary hover-white">Our Story</Link></li>
+              <li><Link href="#" className="text-decoration-none text-secondary hover-white">Mission & Vision</Link></li>
+              <li><Link href="#" className="text-decoration-none text-secondary hover-white">Fabric Care Instructions</Link></li>
+              <li><Link href="#" className="text-decoration-none text-secondary hover-white">Terms & Conditions</Link></li>
             </ul>
           </div>
 
           {/* Col 4 */}
           <div className="col-6 col-md-3">
-            <h6 className="fw-bold text-uppercase tracking-wider small mb-3" style={{ color: "#f8f9fa" }}>Atelier Concierge</h6>
+            <h6 className="fw-bold text-uppercase tracking-wider small mb-3" style={{ color: "#f8f9fa" }}>Contact Us</h6>
             <ul className="list-unstyled d-flex flex-column gap-2 text-secondary small">
               <li className="d-flex align-items-start gap-2">
                 <i className="bi bi-geo-alt mt-0.5"></i>
-                <span>12, Khader Nawaz Khan Rd, Nungambakkam, Chennai, India</span>
+                <span>16(1), Muthaiyan Kovil Layout, Velliyankadu, Tiruppur - 641604, Tamil Nadu, India</span>
               </li>
               <li className="d-flex align-items-center gap-2">
                 <i className="bi bi-telephone"></i>
-                <span>+91 44 4859 2910</span>
+                <span>+91 99440 84488</span>
               </li>
               <li className="d-flex align-items-center gap-2">
                 <i className="bi bi-envelope"></i>
-                <span>concierge@auraweaves.in</span>
+                <span>vasanthamsilks07072025@gmail.com</span>
               </li>
             </ul>
           </div>
@@ -120,7 +120,7 @@ export default function Footer() {
         {/* Bottom Section */}
         <div className="border-top border-secondary pt-4 mt-2 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
           <p className="text-secondary mb-0 small" style={{ fontSize: "0.75rem" }}>
-            &copy; {new Date().getFullYear()} Aura.weaves. All rights reserved. Crafted by weavers, designed for modern elegance.
+            &copy; {new Date().getFullYear()} Vasantham Silks. All rights reserved. Premium quality women's fashion at affordable prices.
           </p>
           {/* Payment Methods */}
           <div className="d-flex align-items-center gap-2">

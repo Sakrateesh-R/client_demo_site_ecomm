@@ -17,6 +17,8 @@ export default function Navbar() {
   const [showBrandDropdown, setShowBrandDropdown] = useState(false);
   const [mobileBrandOpen, setMobileBrandOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [scrollAnnouncement, setScrollAnnouncement] = useState(true);
+  const [activeCoupons, setActiveCoupons] = useState<any[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -71,8 +73,41 @@ export default function Navbar() {
         console.error("Failed to fetch brands", err);
       }
     };
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch("/api/settings");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.general) {
+            setScrollAnnouncement(data.general.scroll_announcement !== "false");
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch settings", err);
+      }
+    };
+    const fetchCoupons = async () => {
+      try {
+        const res = await fetch("/api/coupons");
+        if (res.ok) {
+          const data = await res.json();
+          const now = new Date();
+          const active = data.filter((c: any) => {
+            const isCouponActive = c.is_active;
+            const isStarted = !c.starts_at || new Date(c.starts_at) <= now;
+            const isNotExpired = !c.expires_at || new Date(c.expires_at) >= now;
+            return isCouponActive && isStarted && isNotExpired;
+          });
+          setActiveCoupons(active);
+        }
+      } catch (err) {
+        console.error("Failed to fetch coupons", err);
+      }
+    };
     fetchCategories();
     fetchBrands();
+    fetchSettings();
+    fetchCoupons();
   }, []);
 
   useEffect(() => {
@@ -96,15 +131,89 @@ export default function Navbar() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const getAnnouncementText = () => {
+    let parts: string[] = [];
+    if (activeCoupons.length > 0) {
+      activeCoupons.forEach((c) => {
+        const discStr = c.discount_type === "percentage" ? `${c.discount_value}%` : `₹${c.discount_value}`;
+        const minOrderStr = c.min_order_amount > 0 ? ` on orders above ₹${c.min_order_amount}` : "";
+        parts.push(`Enjoy ${discStr} OFF with coupon code ${c.code}${minOrderStr}!`);
+      });
+    }
+    
+    // Add default brand messages
+    parts.push("✨ Vasantham Silks: Premium Quality Women's Fashion at Affordable Prices");
+    parts.push("🚚 Free Shipping on All Value Combo Packs!");
+    parts.push("💫 New Arrivals in Leggings, Kurtis & Dupattas: Explore Now!");
+    
+    return parts.join("   ✦   ");
+  };
+
+  const announcementText = getAnnouncementText();
+
   return (
-    <header className="sticky-top bg-white border-bottom border-light z-3 py-3">
+    <>
+      {/* Announcement Ticker Bar */}
+      <div className="w-100 py-2 overflow-hidden position-relative marquee-wrapper" style={{ height: "36px", display: "flex", alignItems: "center", borderBottom: "1px solid rgba(255, 255, 255, 0.1)" }}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes marquee-scroll {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-50%, 0, 0); }
+          }
+          .marquee-wrapper {
+            display: flex;
+            overflow: hidden;
+            width: 100%;
+            background-color: var(--color-primary) !important;
+          }
+          .marquee-track {
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            width: max-content;
+          }
+          .marquee-animate {
+            animation: marquee-scroll 35s linear infinite;
+          }
+          .marquee-item {
+            padding-right: 5rem;
+            color: #f8f9fa;
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            font-family: var(--font-body);
+          }
+          .marquee-static {
+            width: 100%;
+            text-align: center;
+            color: #f8f9fa;
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            font-family: var(--font-body);
+          }
+        `}} />
+        
+        {scrollAnnouncement ? (
+          <div className="marquee-track marquee-animate">
+            <span className="marquee-item">{announcementText}</span>
+            <span className="marquee-item">{announcementText}</span>
+          </div>
+        ) : (
+          <div className="marquee-static">
+            <span>{announcementText.split("   ✦   ")[0]}</span>
+          </div>
+        )}
+      </div>
+
+      <header className="sticky-top bg-white border-bottom border-light z-3 py-3">
       <div className="container-fluid px-lg-5">
         <div className="d-flex justify-content-between align-items-center">
           {/* Logo */}
           <Link href="/" className="text-decoration-none d-flex align-items-center gap-2">
-            <span className="bg-primary text-white d-flex align-items-center justify-content-center rounded-sm font-monospace" style={{ width: "32px", height: "32px", fontWeight: "800", fontSize: "1.1rem" }}>A</span>
+            <span className="bg-primary text-white d-flex align-items-center justify-content-center rounded-sm font-monospace" style={{ width: "32px", height: "32px", fontWeight: "800", fontSize: "1.1rem" }}>V</span>
             <span className="h5 fw-bold mb-0 text-dark tracking-wide" style={{ fontFamily: "var(--font-heading)" }}>
-              Aura.weaves
+              Vasantham Silks
             </span>
           </Link>
 
@@ -405,5 +514,6 @@ export default function Navbar() {
       </div>
       <CartDrawer />
     </header>
+  </>
   );
 }

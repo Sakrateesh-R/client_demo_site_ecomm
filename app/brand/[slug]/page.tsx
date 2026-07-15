@@ -70,7 +70,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
             </div>
           )}
           <span className="text-uppercase tracking-widest text-accent small fw-bold mb-2 d-block">Brand Collection</span>
-          <h1 className="display-4 fw-bold mb-3" style={{ fontFamily: "var(--font-heading)" }}>{brand.name}</h1>
+          <h1 className="display-4 fw-bold mb-3 text-white" style={{ fontFamily: "var(--font-heading)", color: "#ffffff" }}>{brand.name}</h1>
           {brand.description && (
             <p className="lead fs-6 text-light opacity-75 mx-auto" style={{ maxWidth: "600px" }}>
               {brand.description}

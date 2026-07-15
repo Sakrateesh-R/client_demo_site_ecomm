@@ -137,10 +137,7 @@ export async function PUT(request: Request) {
 
     const { data: updatedCoupon, error: updateError } = await supabase
       .from("coupons")
-      .update({
-        ...dataToUpdate,
-        updated_at: new Date().toISOString(),
-      })
+      .update(dataToUpdate)
       .eq("id", id)
       .select()
       .single();

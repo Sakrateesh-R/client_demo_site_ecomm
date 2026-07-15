@@ -69,7 +69,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               <li className="breadcrumb-item active text-white small" aria-current="page">Category</li>
             </ol>
           </nav>
-          <h1 className="display-5 fw-bold" style={{ fontFamily: "var(--font-heading)" }}>{category.name}</h1>
+          <h1 className="display-5 fw-bold text-white" style={{ fontFamily: "var(--font-heading)", color: "#ffffff" }}>{category.name}</h1>
           {category.description && (
             <p className="lead small text-light opacity-75 max-w-600 mb-0 mt-2">{category.description}</p>
           )}

@@ -33,6 +33,9 @@ export default function CheckoutPage() {
   const [state, setState] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cod"); // 'cod' or 'card'
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [applying, setApplying] = useState(false);
 
   useEffect(() => {
     // Read cart
@@ -61,10 +64,67 @@ export default function CheckoutPage() {
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   
+  // Calculate discount
+  let discountAmount = 0;
+  if (appliedCoupon) {
+    if (subtotal >= Number(appliedCoupon.min_order_amount)) {
+      if (appliedCoupon.discount_type === "percentage") {
+        discountAmount = subtotal * (Number(appliedCoupon.discount_value) / 100);
+        if (appliedCoupon.max_discount_amount) {
+          discountAmount = Math.min(discountAmount, Number(appliedCoupon.max_discount_amount));
+        }
+      } else {
+        discountAmount = Number(appliedCoupon.discount_value);
+      }
+    }
+  }
+
   // Calculate shipping cost
   const isFreeShipping = shippingPromo.enabled && subtotal >= shippingPromo.threshold;
   const shippingCost = subtotal > 0 && !isFreeShipping ? 150 : 0; // ₹150 flat shipping if not free
-  const totalAmount = subtotal + shippingCost;
+  const totalAmount = Math.max(0, subtotal - discountAmount + shippingCost);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setApplying(true);
+    try {
+      const res = await fetch("/api/coupons");
+      if (!res.ok) throw new Error("Failed to fetch coupons");
+      const coupons = await res.json();
+      
+      const matched = coupons.find(
+        (c: any) => c.code === couponCode.trim().toUpperCase() && c.is_active
+      );
+      
+      if (!matched) {
+        toast.error("Invalid coupon code or coupon is inactive.");
+        setAppliedCoupon(null);
+        return;
+      }
+
+      const now = new Date();
+      if (matched.starts_at && new Date(matched.starts_at) > now) {
+        toast.error("This coupon has not started yet.");
+        return;
+      }
+      if (matched.expires_at && new Date(matched.expires_at) < now) {
+        toast.error("This coupon has expired.");
+        return;
+      }
+
+      if (matched.min_order_amount && subtotal < Number(matched.min_order_amount)) {
+        toast.error(`Minimum order amount of ₹${matched.min_order_amount} is required.`);
+        return;
+      }
+
+      setAppliedCoupon(matched);
+      toast.success(`Coupon "${matched.code}" applied successfully!`);
+    } catch (err: any) {
+      toast.error("Failed to apply coupon");
+    } finally {
+      setApplying(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,15 +154,18 @@ export default function CheckoutPage() {
         country: "India",
         items: cartItems.map(item => ({
           product_id: item.id,
+          name: item.name,
           quantity: item.quantity,
           price: item.price,
           color: item.color || null,
           size_letter: item.size_letter || null,
-          size_inch: item.size_inch || null
+          size_inch: item.size_inch || null,
+          is_combo: item.is_combo || false,
+          combo_selections: item.combo_selections || null
         })),
         subtotal,
         shipping: shippingCost,
-        discount: 0,
+        discount: discountAmount,
         total: totalAmount,
         payment_method: paymentMethod
       };
@@ -144,7 +207,7 @@ export default function CheckoutPage() {
                 <i className="bi bi-patch-check-fill display-4 m-0"></i>
               </span>
               <h2 className="fw-bold text-dark mb-2">Order Confirmed!</h2>
-              <p className="text-secondary small">Thank you for shopping with Aura.weaves. Your premium weaves order is being packed.</p>
+              <p className="text-secondary small">Thank you for shopping with Vasantham Silks. Your premium apparel order is being packed.</p>
             </div>
 
             <div className="bg-light p-4 rounded-3 border border-light text-start mb-4">
@@ -167,7 +230,7 @@ export default function CheckoutPage() {
               <hr className="border-light" />
               <div className="d-flex justify-content-between">
                 <span className="fw-bold text-dark">Amount Paid</span>
-                <span className="fw-bold text-primary">₹{totalAmount.toFixed(2)}</span>
+                <span className="fw-bold text-primary">₹{Number(orderSuccess.total_amount || orderSuccess.total || totalAmount).toFixed(2)}</span>
               </div>
             </div>
 
@@ -384,7 +447,7 @@ export default function CheckoutPage() {
 
             {/* Right Column: Order Summary */}
             <div className="col-12 col-lg-5">
-              <div className="card border-0 p-4 rounded-4 shadow-sm bg-white sticky-top" style={{ top: "100px" }}>
+              <div className="card border-0 p-4 rounded-4 shadow-sm bg-white sticky-top" style={{ top: "100px", zIndex: 10 }}>
                 <h5 className="h6 fw-bold text-dark mb-4 text-uppercase tracking-wider">Order Summary</h5>
 
                 <div className="d-flex flex-column gap-3 overflow-y-auto mb-4" style={{ maxHeight: "300px" }}>
@@ -414,11 +477,85 @@ export default function CheckoutPage() {
 
                 <hr className="border-light" />
 
+                {/* Coupon Code Input */}
+                <div className="mb-4">
+                  <label className="form-label fs-9 fw-semibold text-secondary mb-1">Promo Coupon Code</label>
+                  <div className="input-group">
+                    <input 
+                      type="text" 
+                      className="form-control form-control-sm wix-input flex-grow-1" 
+                      placeholder="e.g. WELCOME10"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      disabled={!!appliedCoupon}
+                      style={{ 
+                        fontSize: "0.85rem", 
+                        height: "40px", 
+                        borderTopLeftRadius: "var(--radius-pill)",
+                        borderBottomLeftRadius: "var(--radius-pill)",
+                        borderTopRightRadius: "0px",
+                        borderBottomRightRadius: "0px",
+                        borderRight: "0px"
+                      }}
+                    />
+                    {appliedCoupon ? (
+                      <button 
+                        type="button" 
+                        className="btn btn-outline-danger btn-sm px-4 fw-semibold"
+                        onClick={() => {
+                          setAppliedCoupon(null);
+                          setCouponCode("");
+                        }}
+                        style={{ 
+                          fontSize: "0.8rem", 
+                          height: "40px",
+                          borderTopRightRadius: "var(--radius-pill)",
+                          borderBottomRightRadius: "var(--radius-pill)",
+                          borderTopLeftRadius: "0px",
+                          borderBottomLeftRadius: "0px"
+                        }}
+                      >
+                        Remove
+                      </button>
+                    ) : (
+                      <button 
+                        type="button" 
+                        className="btn btn-primary btn-sm px-4 fw-semibold"
+                        onClick={handleApplyCoupon}
+                        disabled={applying || !couponCode.trim()}
+                        style={{ 
+                          fontSize: "0.8rem", 
+                          height: "40px",
+                          borderTopRightRadius: "var(--radius-pill)",
+                          borderBottomRightRadius: "var(--radius-pill)",
+                          borderTopLeftRadius: "0px",
+                          borderBottomLeftRadius: "0px"
+                        }}
+                      >
+                        {applying ? "Applying..." : "Apply"}
+                      </button>
+                    )}
+                  </div>
+                  {appliedCoupon && (
+                    <span className="text-success fs-9 mt-1 d-block">
+                      <i className="bi bi-patch-check-fill me-1"></i> Coupon <strong>{appliedCoupon.code}</strong> applied! (Saved ₹{discountAmount.toFixed(2)})
+                    </span>
+                  )}
+                </div>
+
+                <hr className="border-light" />
+
                 <div className="d-flex flex-column gap-2 mb-4">
                   <div className="d-flex justify-content-between text-secondary small">
                     <span>Subtotal</span>
                     <span className="fw-semibold text-dark">₹{subtotal.toFixed(2)}</span>
                   </div>
+                  {discountAmount > 0 && (
+                    <div className="d-flex justify-content-between text-success small">
+                      <span>Discount ({appliedCoupon?.code})</span>
+                      <span className="fw-semibold">-₹{discountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="d-flex justify-content-between text-secondary small">
                     <span>Shipping</span>
                     <span className="fw-semibold text-dark">{shippingCost > 0 ? `₹${shippingCost.toFixed(2)}` : "Free"}</span>

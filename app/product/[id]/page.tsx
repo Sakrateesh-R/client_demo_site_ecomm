@@ -124,9 +124,9 @@ export default function ProductDetailPage() {
             }
             if (parsed.is_combo && parsed.combo_products) {
               const initialComboSel: Record<string, string> = {};
-              parsed.combo_products.forEach((cp: any) => {
+              parsed.combo_products.forEach((cp: any, idx: number) => {
                 if (cp.sizes && cp.sizes.length > 0) {
-                  initialComboSel[cp.product_id] = cp.sizes[0];
+                  initialComboSel[`${cp.product_id}-${idx}`] = cp.sizes[0];
                 }
               });
               setComboSelections(initialComboSel);
@@ -143,7 +143,7 @@ export default function ProductDetailPage() {
     fetchProduct();
   }, [id, supabase]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (quiet = false) => {
     const mainImg = product.product_images?.find((img: any) => img.is_main) || product.product_images?.[0];
     
     // Check if combo
@@ -161,17 +161,17 @@ export default function ProductDetailPage() {
 
     if (isCombo) {
       // Validate all sizes selected
-      const unselected = comboProductsList.some((cp) => !comboSelections[cp.product_id]);
+      const unselected = comboProductsList.some((cp, idx) => !comboSelections[`${cp.product_id}-${idx}`]);
       if (unselected) {
         toast.error("Please select a size for all products in the combo.");
-        return;
+        return false;
       }
 
       // Build selections array
-      const selections = comboProductsList.map((cp) => ({
+      const selections = comboProductsList.map((cp, idx) => ({
         product_id: cp.product_id,
         name: cp.name,
-        selected_size: comboSelections[cp.product_id],
+        selected_size: comboSelections[`${cp.product_id}-${idx}`],
       }));
 
       addToCart({
@@ -195,7 +195,15 @@ export default function ProductDetailPage() {
         size_inch: selectedInchSize || undefined,
       });
     }
-    toast.success("Added to shopping bag!");
+    if (!quiet) toast.success("Added to shopping bag!");
+    return true;
+  };
+
+  const handleBuyNow = () => {
+    const success = handleAddToCart(true);
+    if (success) {
+      router.push("/checkout");
+    }
   };
 
   if (loading) {
@@ -362,14 +370,14 @@ export default function ProductDetailPage() {
                     return (
                       <div className="bg-white p-3 rounded-3 border border-light mb-4">
                         <h6 className="fw-bold text-dark mb-3 text-uppercase tracking-wider" style={{ fontSize: "0.75rem" }}>Configure Combo Items</h6>
-                        {comboProductsList.map((cp) => (
-                          <div key={cp.product_id} className="mb-3 pb-3 border-bottom border-light last-border-0">
+                        {comboProductsList.map((cp, idx) => (
+                          <div key={idx} className="mb-3 pb-3 border-bottom border-light last-border-0">
                             <span className="text-secondary small fw-bold d-block mb-2 text-uppercase tracking-wider" style={{ fontSize: "0.7rem" }}>
                               {cp.name}
                             </span>
                             <div className="d-flex flex-wrap gap-2">
                               {cp.sizes.map((sz: string) => {
-                                const isSelected = comboSelections[cp.product_id] === sz;
+                                const isSelected = comboSelections[`${cp.product_id}-${idx}`] === sz;
                                 return (
                                   <button
                                     key={sz}
@@ -377,7 +385,7 @@ export default function ProductDetailPage() {
                                     onClick={() => {
                                       setComboSelections((prev) => ({
                                         ...prev,
-                                        [cp.product_id]: sz,
+                                        [`${cp.product_id}-${idx}`]: sz,
                                       }));
                                     }}
                                     className={`btn btn-sm rounded-3 transition-all fs-8 fw-semibold ${
@@ -592,16 +600,14 @@ export default function ProductDetailPage() {
                     <div className="d-flex gap-2 mt-2">
                       <button
                         type="button"
-                        onClick={handleAddToCart}
+                        onClick={() => handleAddToCart()}
                         className="btn btn-wix-primary rounded-pill px-5 py-2.5 flex-grow-1 shadow-sm fw-semibold"
                       >
                         <i className="bi bi-bag-plus me-2"></i> Add to Bag
                       </button>
                       <button
                         type="button"
-                        onClick={() => {
-                          toast.success("Initiating instant checkout!");
-                        }}
+                        onClick={handleBuyNow}
                         className="btn btn-wix-outline rounded-pill px-4 py-2.5 fw-semibold"
                       >
                         Buy Now
